@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   initialHabits,
   initialGroups,
@@ -18,10 +18,17 @@ import { GroupManagerSheet } from '@/components/habitual/GroupManagerSheet';
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [functionalToday, setFunctionalToday] = useState<Date | null>(null);
+  const [isAddHabitOpen, setAddHabitOpen] = useState(false);
+  const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
   
   useEffect(() => {
-    setIsClient(true);
+    // Set dates and load data only on the client-side
+    const now = new Date();
+    setSelectedDate(now);
+    setFunctionalToday(getFunctionalDate(now));
+
     const storedHabits = localStorage.getItem('habits');
     const storedGroups = localStorage.getItem('groups');
     if (storedHabits) {
@@ -37,23 +44,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (isClient) {
+    if (selectedDate) { // only run on client
       localStorage.setItem('habits', JSON.stringify(habits));
     }
-  }, [habits, isClient]);
+  }, [habits, selectedDate]);
 
   useEffect(() => {
-    if (isClient) {
+    if (selectedDate) { // only run on client
       localStorage.setItem('groups', JSON.stringify(groups));
     }
-  }, [groups, isClient]);
-
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const [isAddHabitOpen, setAddHabitOpen] = useState(false);
-  const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
-
-  const functionalToday = useMemo(() => getFunctionalDate(new Date()), []);
+  }, [groups, selectedDate]);
 
   const handleHabitCompletion = useCallback((habitId: string, date: Date) => {
     if (navigator.vibrate) {
@@ -102,15 +102,15 @@ export default function Home() {
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
+  // Don't render anything until the client has hydrated and dates are set
+  if (!selectedDate || !functionalToday) {
+    return null; // or a loading skeleton
+  }
 
   const dayOfWeek = getDayOfWeek(selectedDate);
   const filteredHabits = habits.filter((habit) =>
     habit.frequency.includes(dayOfWeek)
   );
-
-  if (!isClient) {
-    return null; // or a loading skeleton
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
