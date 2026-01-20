@@ -14,7 +14,7 @@ export const initialHabits: Habit[] = [
     color: '#A0D2EB',
     objective: 8,
     frequency: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-    groupId: 'grp1',
+    groupIds: ['grp1', 'grp2'],
     completions: {},
   },
   {
@@ -24,7 +24,7 @@ export const initialHabits: Habit[] = [
     color: '#BCA0EB',
     objective: 1,
     frequency: ['monday', 'wednesday', 'friday'],
-    groupId: 'grp3',
+    groupIds: ['grp3'],
     completions: {},
   },
   {
@@ -34,7 +34,7 @@ export const initialHabits: Habit[] = [
     color: '#A0EBD2',
     objective: 1,
     frequency: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-    groupId: 'grp1',
+    groupIds: ['grp1'],
     completions: {},
   },
   {
@@ -44,7 +44,7 @@ export const initialHabits: Habit[] = [
     color: '#EBA0A0',
     objective: 1,
     frequency: ['tuesday', 'thursday', 'saturday'],
-    groupId: 'grp2',
+    groupIds: ['grp2'],
     completions: {},
   },
     {
@@ -54,7 +54,7 @@ export const initialHabits: Habit[] = [
     color: '#EBEBA0',
     objective: 1,
     frequency: ['saturday', 'sunday'],
-    groupId: 'grp3',
+    groupIds: ['grp3'],
     completions: {},
   },
 ];

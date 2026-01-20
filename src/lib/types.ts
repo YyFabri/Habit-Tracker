@@ -7,7 +7,7 @@ export interface Habit {
   color: string; // hex color
   objective: number; // 1 for simple, >1 for counter
   frequency: DayOfWeek[];
-  groupId: string;
+  groupIds: string[];
   completions: Record<string, number>; // date string 'YYYY-MM-DD' -> count
 }
 

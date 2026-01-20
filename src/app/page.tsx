@@ -136,13 +136,12 @@ export default function Home() {
     }
   };
 
-  const handleMoveHabit = (habitId: string, direction: 'up' | 'down') => {
+  const handleMoveHabit = (habitId: string, direction: 'up' | 'down', groupId: string) => {
     const newHabits = [...habits];
     const currentIndex = newHabits.findIndex((h) => h.id === habitId);
     if (currentIndex === -1) return;
 
-    const { groupId } = newHabits[currentIndex];
-    const groupHabits = newHabits.filter((h) => h.groupId === groupId);
+    const groupHabits = newHabits.filter((h) => h.groupIds.includes(groupId));
     const groupIndex = groupHabits.findIndex((h) => h.id === habitId);
 
     let otherHabit: Habit | undefined;
@@ -174,7 +173,10 @@ export default function Home() {
 
   const handleDeleteGroup = (id: string) => {
     setHabits((prev) =>
-      prev.map((h) => (h.groupId === id ? { ...h, groupId: '' } : h))
+      prev.map((h) => ({
+        ...h,
+        groupIds: h.groupIds.filter((gid) => gid !== id),
+      }))
     );
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };

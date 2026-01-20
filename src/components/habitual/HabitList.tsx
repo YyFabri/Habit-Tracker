@@ -11,7 +11,7 @@ interface HabitListProps {
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
   isFuture: boolean;
-  onMoveHabit: (habitId: string, direction: 'up' | 'down') => void;
+  onMoveHabit: (habitId: string, direction: 'up' | 'down', groupId: string) => void;
 }
 
 export function HabitList({
@@ -25,11 +25,13 @@ export function HabitList({
   onMoveHabit,
 }: HabitListProps) {
   const groupedHabits = habits.reduce((acc, habit) => {
-    const groupId = habit.groupId || 'ungrouped';
-    if (!acc[groupId]) {
-      acc[groupId] = [];
-    }
-    acc[groupId].push(habit);
+    const groupIds = habit.groupIds && habit.groupIds.length > 0 ? habit.groupIds : ['ungrouped'];
+    groupIds.forEach((groupId) => {
+      if (!acc[groupId]) {
+        acc[groupId] = [];
+      }
+      acc[groupId].push(habit);
+    });
     return acc;
   }, {} as Record<string, Habit[]>);
 
@@ -66,14 +68,14 @@ export function HabitList({
             <div className="space-y-3">
               {groupHabits.map((habit, index) => (
                 <HabitCard
-                  key={habit.id}
+                  key={`${habit.id}-${groupId}`}
                   habit={habit}
                   date={selectedDate}
                   onComplete={onHabitCompletion}
                   onEdit={onEditHabit}
                   onDelete={onDeleteHabit}
                   isFuture={isFuture}
-                  onMove={onMoveHabit}
+                  onMove={(habitId, direction) => onMoveHabit(habitId, direction, groupId)}
                   isFirstInGroup={index === 0}
                   isLastInGroup={index === groupHabits.length - 1}
                 />

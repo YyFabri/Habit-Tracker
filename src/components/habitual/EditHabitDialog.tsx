@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,27 +14,22 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { Group, Habit, DayOfWeek } from '@/lib/types';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const habitSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
   icon: z.string().min(1, 'El icono es obligatorio.'),
   color: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, 'Color inválido.'),
-  groupId: z.string().min(1, 'Selecciona un grupo.'),
+  groupIds: z.array(z.string()).min(1, 'Selecciona al menos un grupo.'),
   objective: z.coerce.number().min(1, 'El objetivo debe ser al menos 1.'),
   frequency: z
     .array(z.string())
@@ -76,7 +70,7 @@ export function EditHabitDialog({
       name: habit.name,
       icon: habit.icon,
       color: habit.color,
-      groupId: habit.groupId,
+      groupIds: habit.groupIds,
       objective: habit.objective,
       frequency: habit.frequency,
     },
@@ -156,35 +150,50 @@ export function EditHabitDialog({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="groupId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grupo</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un grupo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {groups.map((group) => (
-                          <SelectItem key={group.id} value={group.id}>
-                            {group.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+            
+            <FormField
+              control={form.control}
+              name="groupIds"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="mb-2">
+                    <FormLabel>Grupos</FormLabel>
+                    <FormDescription>
+                      Selecciona uno o más grupos.
+                    </FormDescription>
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    {groups.map((group) => (
+                      <FormItem
+                        key={group.id}
+                        className="flex flex-row items-center space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(group.id)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...(field.value || []), group.id])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== group.id
+                                    )
+                                  );
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {group.name}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
                 control={form.control}
                 name="objective"
                 render={({ field }) => (
@@ -197,7 +206,7 @@ export function EditHabitDialog({
                   </FormItem>
                 )}
               />
-            </div>
+            
             <FormField
               control={form.control}
               name="frequency"
