@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { motivationalQuotes } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
-import { format } from 'date-fns';
+import { getDayOfYear } from 'date-fns';
 
 interface MotivationalQuoteProps {
   functionalDate: Date;
@@ -12,7 +12,7 @@ interface MotivationalQuoteProps {
 export function MotivationalQuote({ functionalDate }: MotivationalQuoteProps) {
   const quote = useMemo(() => {
     // This creates a deterministic index based on the day of the year.
-    const dayOfYear = parseInt(format(functionalDate, 'D'));
+    const dayOfYear = getDayOfYear(functionalDate);
     const quoteIndex = (dayOfYear - 1) % motivationalQuotes.length;
     return motivationalQuotes[quoteIndex];
   }, [functionalDate]);
