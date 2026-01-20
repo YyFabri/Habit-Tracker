@@ -57,7 +57,7 @@ const weekDays: { id: DayOfWeek; label: string }[] = [
 
 interface EditHabitDialogProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  onClose: () => void;
   groups: Group[];
   habit: Habit;
   onEditHabit: (habit: Omit<Habit, 'id' | 'completions'>, habitId: string) => void;
@@ -65,7 +65,7 @@ interface EditHabitDialogProps {
 
 export function EditHabitDialog({
   isOpen,
-  setIsOpen,
+  onClose,
   groups,
   habit,
   onEditHabit,
@@ -90,10 +90,11 @@ export function EditHabitDialog({
       },
       habit.id
     );
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-card">
         <DialogHeader>
           <DialogTitle>Editar Hábito</DialogTitle>

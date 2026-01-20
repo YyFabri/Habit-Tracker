@@ -22,14 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [functionalToday, setFunctionalToday] = useState<Date>(
-    getFunctionalDate(new Date())
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [functionalToday, setFunctionalToday] = useState<Date | null>(null);
 
   const [isAddHabitOpen, setAddHabitOpen] = useState(false);
   const [isEditHabitOpen, setEditHabitOpen] = useState(false);
@@ -38,6 +37,10 @@ export default function Home() {
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
 
   useEffect(() => {
+    const now = new Date();
+    setSelectedDate(now);
+    setFunctionalToday(getFunctionalDate(now));
+
     try {
       const storedHabits = localStorage.getItem('habits');
       const storedGroups = localStorage.getItem('groups');
@@ -59,11 +62,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('habits', JSON.stringify(habits));
+    if (habits.length > 0) {
+      localStorage.setItem('habits', JSON.stringify(habits));
+    }
   }, [habits]);
 
   useEffect(() => {
-    localStorage.setItem('groups', JSON.stringify(groups));
+    if (groups.length > 0) {
+      localStorage.setItem('groups', JSON.stringify(groups));
+    }
   }, [groups]);
 
   const handleHabitCompletion = useCallback((habitId: string, date: Date) => {
@@ -107,11 +114,14 @@ export default function Home() {
     updatedHabit: Omit<Habit, 'id' | 'completions'>,
     habitId: string
   ) => {
-    setEditHabitOpen(false);
     setHabits((prev) =>
       prev.map((h) => (h.id === habitId ? { ...h, ...updatedHabit } : h))
     );
     setEditingHabit(null);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditHabitOpen(false);
   };
 
   const handleConfirmDelete = () => {
@@ -136,6 +146,37 @@ export default function Home() {
     );
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
+
+  if (!selectedDate || !functionalToday) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
+        <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-12 w-12 rounded-2xl" />
+        </header>
+        <main className="flex-grow p-4 md:p-6 space-y-6">
+          <Skeleton className="h-20 w-full" />
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-32" />
+            <div className="space-y-3">
+              <Skeleton className="h-24 w-full rounded-3xl" />
+              <Skeleton className="h-24 w-full rounded-3xl" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-32" />
+            <div className="space-y-3">
+              <Skeleton className="h-24 w-full rounded-3xl" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const dayOfWeek = getDayOfWeek(selectedDate);
   const filteredHabits = habits.filter((habit) =>
@@ -182,7 +223,7 @@ export default function Home() {
         <EditHabitDialog
           key={editingHabit.id}
           isOpen={isEditHabitOpen}
-          setIsOpen={setEditHabitOpen}
+          onClose={handleCloseEditDialog}
           groups={groups}
           habit={editingHabit}
           onEditHabit={handleUpdateHabit}
