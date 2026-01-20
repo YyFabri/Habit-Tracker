@@ -114,13 +114,17 @@ export default function Home() {
     setEditHabitOpen(true);
   };
 
-  const handleUpdateHabit = (
-    updatedHabit: Omit<Habit, 'id' | 'completions'>,
-    habitId: string
+  const handleUpdateHabitAndClose = (
+    updatedHabitData: Omit<Habit, 'id' | 'completions'>
   ) => {
+    if (!editingHabit) return;
+
     setHabits((prev) =>
-      prev.map((h) => (h.id === habitId ? { ...h, ...updatedHabit } : h))
+      prev.map((h) =>
+        h.id === editingHabit.id ? { ...h, ...updatedHabitData } : h
+      )
     );
+    handleCloseEditDialog();
   };
 
   const handleCloseEditDialog = () => {
@@ -230,7 +234,7 @@ export default function Home() {
           onClose={handleCloseEditDialog}
           groups={groups}
           habit={editingHabit}
-          onEditHabit={handleUpdateHabit}
+          onEditHabit={handleUpdateHabitAndClose}
         />
       )}
       <AlertDialog

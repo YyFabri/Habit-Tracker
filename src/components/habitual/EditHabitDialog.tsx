@@ -44,7 +44,7 @@ const habitSchema = z.object({
 
 type HabitFormData = z.infer<typeof habitSchema>;
 
-const colors = ['#A0D2EB', '#BCA0EB', '#A0EBD2', '#EBA0A0', '#EBEB_A0', '#A0EBAF'];
+const colors = ['#A0D2EB', '#BCA0EB', '#A0EBD2', '#EBA0A0', '#EBEBA0', '#A0EBAF'];
 const weekDays: { id: DayOfWeek; label: string }[] = [
   { id: 'monday', label: 'L' },
   { id: 'tuesday', label: 'M' },
