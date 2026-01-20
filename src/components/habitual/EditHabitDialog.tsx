@@ -90,7 +90,6 @@ export function EditHabitDialog({
       },
       habit.id
     );
-    setIsOpen(false);
   };
 
   return (

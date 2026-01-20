@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { isFuture } from 'date-fns';
+import { isFuture, isToday } from 'date-fns';
 import { initialHabits, initialGroups } from '@/lib/data';
 import type { Habit, Group, DayOfWeek } from '@/lib/types';
 import { getFunctionalDate, getDayOfWeek, toYYYYMMDD } from '@/lib/date-utils';
@@ -26,8 +26,10 @@ import {
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [functionalToday, setFunctionalToday] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [functionalToday, setFunctionalToday] = useState<Date>(
+    getFunctionalDate(new Date())
+  );
 
   const [isAddHabitOpen, setAddHabitOpen] = useState(false);
   const [isEditHabitOpen, setEditHabitOpen] = useState(false);
@@ -36,34 +38,32 @@ export default function Home() {
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
 
   useEffect(() => {
-    const now = new Date();
-    setSelectedDate(now);
-    setFunctionalToday(getFunctionalDate(now));
-
-    const storedHabits = localStorage.getItem('habits');
-    const storedGroups = localStorage.getItem('groups');
-    if (storedHabits) {
-      setHabits(JSON.parse(storedHabits));
-    } else {
+    try {
+      const storedHabits = localStorage.getItem('habits');
+      const storedGroups = localStorage.getItem('groups');
+      if (storedHabits) {
+        setHabits(JSON.parse(storedHabits));
+      } else {
+        setHabits(initialHabits);
+      }
+      if (storedGroups) {
+        setGroups(JSON.parse(storedGroups));
+      } else {
+        setGroups(initialGroups);
+      }
+    } catch (error) {
+      console.error('Failed to parse from localStorage', error);
       setHabits(initialHabits);
-    }
-    if (storedGroups) {
-      setGroups(JSON.parse(storedGroups));
-    } else {
       setGroups(initialGroups);
     }
   }, []);
 
   useEffect(() => {
-    if (habits.length > 0) {
-      localStorage.setItem('habits', JSON.stringify(habits));
-    }
+    localStorage.setItem('habits', JSON.stringify(habits));
   }, [habits]);
 
   useEffect(() => {
-    if (groups.length > 0) {
-      localStorage.setItem('groups', JSON.stringify(groups));
-    }
+    localStorage.setItem('groups', JSON.stringify(groups));
   }, [groups]);
 
   const handleHabitCompletion = useCallback((habitId: string, date: Date) => {
@@ -107,6 +107,7 @@ export default function Home() {
     updatedHabit: Omit<Habit, 'id' | 'completions'>,
     habitId: string
   ) => {
+    setEditHabitOpen(false);
     setHabits((prev) =>
       prev.map((h) => (h.id === habitId ? { ...h, ...updatedHabit } : h))
     );
@@ -136,16 +137,13 @@ export default function Home() {
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
-  if (!selectedDate || !functionalToday) {
-    return null;
-  }
-
   const dayOfWeek = getDayOfWeek(selectedDate);
   const filteredHabits = habits.filter((habit) =>
     habit.frequency.includes(dayOfWeek)
   );
 
-  const isFutureDate = isFuture(selectedDate);
+  const isFutureDate =
+    isFuture(selectedDate) && !isToday(getFunctionalDate(selectedDate));
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
