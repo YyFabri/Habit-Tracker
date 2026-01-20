@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+  Check,
+  Plus,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Habit } from '@/lib/types';
 import { toYYYYMMDD } from '@/lib/date-utils';
@@ -13,6 +21,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
 interface HabitCardProps {
@@ -22,6 +31,9 @@ interface HabitCardProps {
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
   isFuture: boolean;
+  onMove: (habitId: string, direction: 'up' | 'down') => void;
+  isFirstInGroup: boolean;
+  isLastInGroup: boolean;
 }
 
 function SegmentedProgressButton({
@@ -88,6 +100,9 @@ export function HabitCard({
   onEdit,
   onDelete,
   isFuture,
+  onMove,
+  isFirstInGroup,
+  isLastInGroup,
 }: HabitCardProps) {
   const dateKey = toYYYYMMDD(date);
   const completions = habit.completions[dateKey] || 0;
@@ -162,6 +177,21 @@ export function HabitCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => onMove(habit.id, 'up')}
+                disabled={isFirstInGroup}
+              >
+                <ArrowUp className="mr-2 h-4 w-4" />
+                <span>Mover Arriba</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onMove(habit.id, 'down')}
+                disabled={isLastInGroup}
+              >
+                <ArrowDown className="mr-2 h-4 w-4" />
+                <span>Mover Abajo</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(habit)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 <span>Editar</span>

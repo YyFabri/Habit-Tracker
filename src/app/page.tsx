@@ -39,7 +39,6 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // This effect runs once on mount to initialize the state
     const now = new Date();
     setSelectedDate(now);
     setFunctionalToday(getFunctionalDate(now));
@@ -66,8 +65,6 @@ export default function Home() {
 
   useEffect(() => {
     if (!isClient) return;
-    // This effect synchronizes habits to localStorage whenever they change
-    // We check for initial mount scenario where habits might be empty before being loaded.
     if (habits.length > 0 || localStorage.getItem('habits')) {
       localStorage.setItem('habits', JSON.stringify(habits));
     }
@@ -75,7 +72,6 @@ export default function Home() {
 
   useEffect(() => {
     if (!isClient) return;
-    // This effect synchronizes groups to localStorage whenever they change
     if (groups.length > 0 || localStorage.getItem('groups')) {
       localStorage.setItem('groups', JSON.stringify(groups));
     }
@@ -124,7 +120,9 @@ export default function Home() {
     if (!editingHabit) return;
 
     const updatedHabits = habits.map((h) =>
-      h.id === editingHabit.id ? { ...h, ...updatedHabitData, completions: h.completions } : h
+      h.id === editingHabit.id
+        ? { ...h, ...updatedHabitData, completions: h.completions }
+        : h
     );
     localStorage.setItem('habits', JSON.stringify(updatedHabits));
     window.location.reload();
@@ -137,6 +135,33 @@ export default function Home() {
       window.location.reload();
     }
   };
+
+  const handleMoveHabit = (habitId: string, direction: 'up' | 'down') => {
+    const newHabits = [...habits];
+    const currentIndex = newHabits.findIndex((h) => h.id === habitId);
+    if (currentIndex === -1) return;
+
+    const { groupId } = newHabits[currentIndex];
+    const groupHabits = newHabits.filter((h) => h.groupId === groupId);
+    const groupIndex = groupHabits.findIndex((h) => h.id === habitId);
+
+    let otherHabit: Habit | undefined;
+    if (direction === 'up' && groupIndex > 0) {
+      otherHabit = groupHabits[groupIndex - 1];
+    } else if (direction === 'down' && groupIndex < groupHabits.length - 1) {
+      otherHabit = groupHabits[groupIndex + 1];
+    }
+
+    if (otherHabit) {
+      const otherIndex = newHabits.findIndex((h) => h.id === otherHabit!.id);
+      if (otherIndex !== -1) {
+        [newHabits[currentIndex], newHabits[otherIndex]] = [newHabits[otherIndex], newHabits[currentIndex]];
+        localStorage.setItem('habits', JSON.stringify(newHabits));
+        window.location.reload();
+      }
+    }
+  };
+
 
   const handleAddGroup = (name: string) => {
     const newGroup: Group = { id: `grp${Date.now()}`, name };
@@ -216,6 +241,7 @@ export default function Home() {
           onEditHabit={handleOpenEditDialog}
           onDeleteHabit={setDeletingHabitId}
           isFuture={isFutureDate}
+          onMoveHabit={handleMoveHabit}
         />
         <MotivationalQuote functionalDate={functionalToday} />
       </main>

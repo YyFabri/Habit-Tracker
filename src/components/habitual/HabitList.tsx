@@ -11,6 +11,7 @@ interface HabitListProps {
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
   isFuture: boolean;
+  onMoveHabit: (habitId: string, direction: 'up' | 'down') => void;
 }
 
 export function HabitList({
@@ -21,6 +22,7 @@ export function HabitList({
   onEditHabit,
   onDeleteHabit,
   isFuture,
+  onMoveHabit,
 }: HabitListProps) {
   const groupedHabits = habits.reduce((acc, habit) => {
     const groupId = habit.groupId || 'ungrouped';
@@ -62,7 +64,7 @@ export function HabitList({
               </h2>
             )}
             <div className="space-y-3">
-              {groupHabits.map((habit) => (
+              {groupHabits.map((habit, index) => (
                 <HabitCard
                   key={habit.id}
                   habit={habit}
@@ -71,6 +73,9 @@ export function HabitList({
                   onEdit={onEditHabit}
                   onDelete={onDeleteHabit}
                   isFuture={isFuture}
+                  onMove={onMoveHabit}
+                  isFirstInGroup={index === 0}
+                  isLastInGroup={index === groupHabits.length - 1}
                 />
               ))}
             </div>
