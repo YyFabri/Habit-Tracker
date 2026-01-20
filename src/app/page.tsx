@@ -29,6 +29,7 @@ export default function Home() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [functionalToday, setFunctionalToday] = useState<Date | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const [isAddHabitOpen, setAddHabitOpen] = useState(false);
   const [isEditHabitOpen, setEditHabitOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function Home() {
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     // This effect runs once on mount to initialize the state
     const now = new Date();
     setSelectedDate(now);
@@ -63,19 +65,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!isClient) return;
     // This effect synchronizes habits to localStorage whenever they change
     // We check for initial mount scenario where habits might be empty before being loaded.
-    if (habits.length > 0) {
+    if (habits.length > 0 || localStorage.getItem('habits')) {
       localStorage.setItem('habits', JSON.stringify(habits));
     }
-  }, [habits]);
+  }, [habits, isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
     // This effect synchronizes groups to localStorage whenever they change
-    if (groups.length > 0) {
+    if (groups.length > 0 || localStorage.getItem('groups')) {
       localStorage.setItem('groups', JSON.stringify(groups));
     }
-  }, [groups]);
+  }, [groups, isClient]);
 
   const handleHabitCompletion = useCallback((habitId: string, date: Date) => {
     if (navigator.vibrate) {
@@ -114,28 +118,23 @@ export default function Home() {
     setEditHabitOpen(true);
   };
 
-  const handleUpdateHabitAndClose = (
+  const handleUpdateHabit = (
     updatedHabitData: Omit<Habit, 'id' | 'completions'>
   ) => {
     if (!editingHabit) return;
 
-    setHabits((prev) =>
-      prev.map((h) =>
-        h.id === editingHabit.id ? { ...h, ...updatedHabitData } : h
-      )
+    const updatedHabits = habits.map((h) =>
+      h.id === editingHabit.id ? { ...h, ...updatedHabitData, completions: h.completions } : h
     );
-    handleCloseEditDialog();
-  };
-
-  const handleCloseEditDialog = () => {
-    setEditHabitOpen(false);
-    setEditingHabit(null);
+    localStorage.setItem('habits', JSON.stringify(updatedHabits));
+    window.location.reload();
   };
 
   const handleConfirmDelete = () => {
     if (deletingHabitId) {
-      setHabits((prev) => prev.filter((h) => h.id !== deletingHabitId));
-      setDeletingHabitId(null);
+      const updatedHabits = habits.filter((h) => h.id !== deletingHabitId);
+      localStorage.setItem('habits', JSON.stringify(updatedHabits));
+      window.location.reload();
     }
   };
 
@@ -155,7 +154,7 @@ export default function Home() {
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
-  if (!selectedDate || !functionalToday) {
+  if (!isClient || !selectedDate || !functionalToday) {
     return (
       <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
@@ -231,10 +230,13 @@ export default function Home() {
         <EditHabitDialog
           key={editingHabit.id}
           isOpen={isEditHabitOpen}
-          onClose={handleCloseEditDialog}
+          onClose={() => {
+            setEditHabitOpen(false);
+            setEditingHabit(null);
+          }}
           groups={groups}
           habit={editingHabit}
-          onEditHabit={handleUpdateHabitAndClose}
+          onEditHabit={handleUpdateHabit}
         />
       )}
       <AlertDialog
