@@ -60,16 +60,16 @@ export const initialHabits: Habit[] = [
 ];
 
 export const motivationalQuotes: string[] = [
-  "El secreto para salir adelante es empezar.",
-  "La disciplina es el puente entre las metas y los logros.",
-  "No tienes que ser grande para empezar, pero tienes que empezar para ser grande.",
-  "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
-  "Cree que puedes y ya estás a medio camino.",
-  "Tu futuro se crea por lo que haces hoy, no mañana.",
-  "La mejor manera de predecir el futuro es crearlo.",
-  "La motivación te pone en marcha, el hábito te mantiene en el camino.",
-  "Pequeños hábitos diarios conducen a grandes resultados a largo plazo.",
-  "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
-  "Un pequeño progreso cada día suma grandes resultados.",
-  "No cuentes los días, haz que los días cuenten."
+  "La disciplina es el puente entre las metas y los logros. Sigue construyendo ese puente, ladrillo a ladrillo.",
+  "El éxito no es para los que piensan que pueden hacer algo, sino para los que lo hacen. ¡Hoy es un día para hacer!",
+  "La única mala sesión de entrenamiento es la que no se hizo. No te saltes la tuya.",
+  "Tu cuerpo puede soportar casi cualquier cosa. Es tu mente la que tienes que convencer.",
+  "No cuentes los días, haz que los días cuenten. Cada hábito completado es una victoria.",
+  "El dolor que sientes hoy será la fuerza que sentirás mañana. ¡Sigue adelante!",
+  "La motivación es lo que te pone en marcha. El hábito es lo que hace que sigas.",
+  "No se trata de ser perfecto. Se trata de ser mejor de lo que eras ayer.",
+  "Un pequeño progreso cada día se suma a grandes resultados. No subestimes el poder de la constancia.",
+  "Despierta con determinación. Acuéstate con satisfacción.",
+  "No busques excusas para no hacerlo, busca razones para hacerlo. Tu yo del futuro te lo agradecerá.",
+  "La diferencia entre querer y lograr es la disciplina. Mantén el enfoque."
 ];

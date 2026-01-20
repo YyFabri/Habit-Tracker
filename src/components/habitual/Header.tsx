@@ -1,10 +1,11 @@
 'use client';
 
-import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
+import { format, isToday, isTomorrow, isYesterday, isFuture } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Menu, Plus } from 'lucide-react';
 import { getFunctionalDate } from '@/lib/date-utils';
+import { ModeToggle } from '../ModeToggle';
 
 interface HeaderProps {
   selectedDate: Date;
@@ -27,13 +28,24 @@ export function Header({
     return format(selectedDate, 'd MMMM', { locale: es });
   };
 
+  const isFutureDate = isFuture(selectedDate) && !isToday(getFunctionalDate(selectedDate));
+
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
-      <Button variant="ghost" size="icon" onClick={onOpenGroupManager}>
-        <Menu className="h-6 w-6" />
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon" onClick={onOpenGroupManager}>
+          <Menu className="h-6 w-6" />
+        </Button>
+        <ModeToggle />
+      </div>
       <h1 className="text-xl font-bold">{displayDate()}</h1>
-      <Button variant="default" size="icon" className="rounded-2xl w-12 h-12 shadow-lg" onClick={onAddHabit}>
+      <Button
+        variant="default"
+        size="icon"
+        className="rounded-2xl w-12 h-12 shadow-lg"
+        onClick={onAddHabit}
+        disabled={isFutureDate}
+      >
         <Plus className="h-6 w-6" />
       </Button>
     </header>

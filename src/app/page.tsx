@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { isFuture } from 'date-fns';
 import {
   initialHabits,
   initialGroups,
-  motivationalQuotes,
 } from '@/lib/data';
 import type { Habit, Group, DayOfWeek } from '@/lib/types';
 import { getFunctionalDate, getDayOfWeek, toYYYYMMDD } from '@/lib/date-utils';
@@ -13,18 +13,32 @@ import { DaySelector } from '@/components/habitual/DaySelector';
 import { HabitList } from '@/components/habitual/HabitList';
 import { MotivationalQuote } from '@/components/habitual/MotivationalQuote';
 import { AddHabitDialog } from '@/components/habitual/AddHabitDialog';
+import { EditHabitDialog } from '@/components/habitual/EditHabitDialog';
 import { GroupManagerSheet } from '@/components/habitual/GroupManagerSheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [functionalToday, setFunctionalToday] = useState<Date | null>(null);
+
   const [isAddHabitOpen, setAddHabitOpen] = useState(false);
+  const [isEditHabitOpen, setEditHabitOpen] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
   
   useEffect(() => {
-    // Set dates and load data only on the client-side
     const now = new Date();
     setSelectedDate(now);
     setFunctionalToday(getFunctionalDate(now));
@@ -44,16 +58,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (selectedDate) { // only run on client
+    if (habits.length > 0) {
       localStorage.setItem('habits', JSON.stringify(habits));
     }
-  }, [habits, selectedDate]);
+  }, [habits]);
 
   useEffect(() => {
-    if (selectedDate) { // only run on client
+    if (groups.length > 0) {
       localStorage.setItem('groups', JSON.stringify(groups));
     }
-  }, [groups, selectedDate]);
+  }, [groups]);
 
   const handleHabitCompletion = useCallback((habitId: string, date: Date) => {
     if (navigator.vibrate) {
@@ -87,6 +101,23 @@ export default function Home() {
     setHabits((prev) => [...prev, habitToAdd]);
   };
 
+  const handleOpenEditDialog = (habit: Habit) => {
+    setEditingHabit(habit);
+    setEditHabitOpen(true);
+  };
+
+  const handleUpdateHabit = (updatedHabit: Omit<Habit, 'id' | 'completions'>, habitId: string) => {
+    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...updatedHabit } : h));
+    setEditingHabit(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingHabitId) {
+      setHabits(prev => prev.filter(h => h.id !== deletingHabitId));
+      setDeletingHabitId(null);
+    }
+  };
+
   const handleAddGroup = (name: string) => {
     const newGroup: Group = { id: `grp${Date.now()}`, name };
     setGroups((prev) => [...prev, newGroup]);
@@ -97,20 +128,20 @@ export default function Home() {
   };
 
   const handleDeleteGroup = (id: string) => {
-    // Also un-group habits that belonged to this group
     setHabits((prev) => prev.map(h => h.groupId === id ? {...h, groupId: ''} : h));
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
-  // Don't render anything until the client has hydrated and dates are set
   if (!selectedDate || !functionalToday) {
-    return null; // or a loading skeleton
+    return null; 
   }
 
   const dayOfWeek = getDayOfWeek(selectedDate);
   const filteredHabits = habits.filter((habit) =>
     habit.frequency.includes(dayOfWeek)
   );
+
+  const isFutureDate = isFuture(selectedDate);
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
@@ -125,12 +156,16 @@ export default function Home() {
         <DaySelector
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          functionalToday={functionalToday}
         />
         <HabitList
           habits={filteredHabits}
           groups={groups}
           selectedDate={selectedDate}
           onHabitCompletion={handleHabitCompletion}
+          onEditHabit={handleOpenEditDialog}
+          onDeleteHabit={setDeletingHabitId}
+          isFuture={isFutureDate}
         />
         <MotivationalQuote functionalDate={functionalToday} />
       </main>
@@ -141,6 +176,32 @@ export default function Home() {
         groups={groups}
         onAddHabit={handleAddHabit}
       />
+      {editingHabit && (
+        <EditHabitDialog
+          isOpen={isEditHabitOpen}
+          setIsOpen={setEditHabitOpen}
+          groups={groups}
+          habit={editingHabit}
+          onEditHabit={handleUpdateHabit}
+        />
+      )}
+      <AlertDialog open={!!deletingHabitId} onOpenChange={() => setDeletingHabitId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el hábito.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingHabitId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <GroupManagerSheet
         isOpen={isGroupManagerOpen}
         setIsOpen={setGroupManagerOpen}
