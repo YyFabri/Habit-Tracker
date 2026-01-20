@@ -94,7 +94,7 @@ export function EditHabitDialog({
         frequency: habit.frequency,
       });
     }
-  }, [habit, form]);
+  }, [habit, form.reset]);
 
   const onSubmit = (data: HabitFormData) => {
     onEditHabit(
