@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { isFuture } from 'date-fns';
-import {
-  initialHabits,
-  initialGroups,
-} from '@/lib/data';
+import { initialHabits, initialGroups } from '@/lib/data';
 import type { Habit, Group, DayOfWeek } from '@/lib/types';
 import { getFunctionalDate, getDayOfWeek, toYYYYMMDD } from '@/lib/date-utils';
 import { Header } from '@/components/habitual/Header';
@@ -37,7 +34,7 @@ export default function Home() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
-  
+
   useEffect(() => {
     const now = new Date();
     setSelectedDate(now);
@@ -106,14 +103,19 @@ export default function Home() {
     setEditHabitOpen(true);
   };
 
-  const handleUpdateHabit = (updatedHabit: Omit<Habit, 'id' | 'completions'>, habitId: string) => {
-    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...updatedHabit } : h));
+  const handleUpdateHabit = (
+    updatedHabit: Omit<Habit, 'id' | 'completions'>,
+    habitId: string
+  ) => {
+    setHabits((prev) =>
+      prev.map((h) => (h.id === habitId ? { ...h, ...updatedHabit } : h))
+    );
     setEditingHabit(null);
   };
 
   const handleConfirmDelete = () => {
     if (deletingHabitId) {
-      setHabits(prev => prev.filter(h => h.id !== deletingHabitId));
+      setHabits((prev) => prev.filter((h) => h.id !== deletingHabitId));
       setDeletingHabitId(null);
     }
   };
@@ -128,12 +130,14 @@ export default function Home() {
   };
 
   const handleDeleteGroup = (id: string) => {
-    setHabits((prev) => prev.map(h => h.groupId === id ? {...h, groupId: ''} : h));
+    setHabits((prev) =>
+      prev.map((h) => (h.groupId === id ? { ...h, groupId: '' } : h))
+    );
     setGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
   if (!selectedDate || !functionalToday) {
-    return null; 
+    return null;
   }
 
   const dayOfWeek = getDayOfWeek(selectedDate);
@@ -178,6 +182,7 @@ export default function Home() {
       />
       {editingHabit && (
         <EditHabitDialog
+          key={editingHabit.id}
           isOpen={isEditHabitOpen}
           setIsOpen={setEditHabitOpen}
           groups={groups}
@@ -185,17 +190,26 @@ export default function Home() {
           onEditHabit={handleUpdateHabit}
         />
       )}
-      <AlertDialog open={!!deletingHabitId} onOpenChange={() => setDeletingHabitId(null)}>
+      <AlertDialog
+        open={!!deletingHabitId}
+        onOpenChange={() => setDeletingHabitId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el hábito.
+              Esta acción no se puede deshacer. Se eliminará permanentemente el
+              hábito.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletingHabitId(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel onClick={() => setDeletingHabitId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
