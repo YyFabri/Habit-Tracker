@@ -60,7 +60,7 @@ interface EditHabitDialogProps {
   onClose: () => void;
   groups: Group[];
   habit: Habit;
-  onEditHabit: (habit: Omit<Habit, 'id' | 'completions'>, habitId: string) => void;
+  onEditHabit: (habit: Omit<Habit, 'id' | 'completions'>) => void;
 }
 
 export function EditHabitDialog({
@@ -83,14 +83,10 @@ export function EditHabitDialog({
   });
 
   const onSubmit = (data: HabitFormData) => {
-    onEditHabit(
-      {
-        ...data,
-        frequency: data.frequency as DayOfWeek[],
-      },
-      habit.id
-    );
-    onClose();
+    onEditHabit({
+      ...data,
+      frequency: data.frequency as DayOfWeek[],
+    });
   };
 
   return (

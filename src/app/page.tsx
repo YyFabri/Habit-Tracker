@@ -37,6 +37,7 @@ export default function Home() {
   const [isGroupManagerOpen, setGroupManagerOpen] = useState(false);
 
   useEffect(() => {
+    // This effect runs once on mount to initialize the state
     const now = new Date();
     setSelectedDate(now);
     setFunctionalToday(getFunctionalDate(now));
@@ -62,12 +63,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // This effect synchronizes habits to localStorage whenever they change
+    // We check for initial mount scenario where habits might be empty before being loaded.
     if (habits.length > 0) {
       localStorage.setItem('habits', JSON.stringify(habits));
     }
   }, [habits]);
 
   useEffect(() => {
+    // This effect synchronizes groups to localStorage whenever they change
     if (groups.length > 0) {
       localStorage.setItem('groups', JSON.stringify(groups));
     }
@@ -117,11 +121,11 @@ export default function Home() {
     setHabits((prev) =>
       prev.map((h) => (h.id === habitId ? { ...h, ...updatedHabit } : h))
     );
-    setEditingHabit(null);
   };
 
   const handleCloseEditDialog = () => {
     setEditHabitOpen(false);
+    setEditingHabit(null);
   };
 
   const handleConfirmDelete = () => {
