@@ -72,6 +72,8 @@ export default function FootballPage() {
     try {
       const savedState = localStorage.getItem('footballGameState');
       if (savedState) {
+        // Here we need to be careful. If the state is from a "won" game,
+        // buttons might not work. We'll handle reset logic carefully.
         setGameState(JSON.parse(savedState));
       } else {
         setGameState(generateInitialGameState());
@@ -91,8 +93,10 @@ export default function FootballPage() {
   const handleSimulateDay = () => {
     if (!gameState) return;
     
-    // In a real scenario, you'd fetch this from the habits page
-    const dailyTrainingPoints = Math.floor(Math.random() * 10);
+    // TODO: In a real scenario, you'd fetch this from the habits page.
+    // For now, it's a random value to simulate completing or skipping habits.
+    const didTrain = Math.random() > 0.3; // 70% chance of training
+    const dailyTrainingPoints = didTrain ? Math.floor(Math.random() * 8) + 2 : 0; // 2-10 points if trained
     const isHomeBonus = Math.random() < 0.2; // Placeholder for perfect week bonus
 
     setGameState(simulateMatchday(gameState, dailyTrainingPoints, isHomeBonus));
@@ -100,8 +104,14 @@ export default function FootballPage() {
   
   const handleResetGame = () => {
      if (window.confirm("¿Estás seguro de que quieres reiniciar tu carrera? Perderás todo tu progreso.")) {
+        localStorage.removeItem('footballGameState');
         setGameState(generateInitialGameState());
      }
+  }
+
+  const handleWinScreenReset = () => {
+    localStorage.removeItem('footballGameState');
+    setGameState(generateInitialGameState());
   }
 
   const handleNextSeason = () => {
@@ -126,7 +136,7 @@ export default function FootballPage() {
   }
 
   if (gameState.gameWon) {
-      return <WinScreen gameState={gameState} onReset={handleResetGame} />;
+      return <WinScreen gameState={gameState} onReset={handleWinScreenReset} />;
   }
   
   const { table, currentMatchday, fixtures, player, leagues, currentSeason } = gameState;
@@ -165,6 +175,7 @@ export default function FootballPage() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <p><strong>Fuerza Actual:</strong> {player.strength.toFixed(0)}</p>
+                        <p><strong>Moral:</strong> 🔥 {player.morale.toFixed(0)}</p>
                         <p><strong>Liga:</strong> {currentLeague?.name}</p>
                          <p><strong>Próxima Fecha:</strong> {isSeasonOver ? "Finalizada" : currentMatchday}</p>
                     </CardContent>

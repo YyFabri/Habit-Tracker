@@ -41,6 +41,7 @@ export interface PlayerState {
   currentLeagueId: string;
   trainingPoints: number; // Earned from habits, resets daily
   perfectWeekBonus: boolean; // For the +20% "Estadio Lleno" bonus
+  morale: number; // 0-100, affects match performance
   seasonHistory: {
     [season: number]: {
       leagueId: string;

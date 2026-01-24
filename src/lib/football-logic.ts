@@ -3,44 +3,39 @@ import { FOOTBALL_LEAGUES, PLAYER_TEAM_NAME, INITIAL_PLAYER_STRENGTH } from './f
 
 /**
  * Simulates a football match result based on team strengths and other factors.
- * The first strength parameter is considered the "home" team for bonus purposes.
  */
-export function simulateMatch(
-  homeStrength: number,
-  awayStrength: number,
-  homeTrainingBonus: number,
-  homeStadiumBonus: boolean
+function simulateMatch(
+  homeEffectiveStrength: number,
+  awayEffectiveStrength: number,
 ): { homeGoals: number; awayGoals: number } {
-    const stadiumBonus = homeStadiumBonus ? homeStrength * 0.15 : 0; // Bonus reduced slightly
-    const homeTotalStrength = homeStrength + homeTrainingBonus + stadiumBonus;
-    const awayTotalStrength = awayStrength + (Math.random() * 6 - 3); // AI teams get a small random factor
-
-    const strengthDifference = homeTotalStrength - awayTotalStrength;
+    const strengthDifference = homeEffectiveStrength - awayEffectiveStrength;
 
     let homeGoals = 0;
     let awayGoals = 0;
 
+    // More volatile results for more excitement
     if (strengthDifference > 15) { // Big win
-        homeGoals = Math.floor(Math.random() * 3) + 2;
-        awayGoals = Math.floor(Math.random() * 2);
+        homeGoals = Math.floor(Math.random() * 3) + 2; // 2-4 goals
+        awayGoals = Math.floor(Math.random() * 2);   // 0-1 goals
     } else if (strengthDifference > 5) { // Clear win
-        homeGoals = Math.floor(Math.random() * 2) + 1;
-        awayGoals = Math.floor(Math.random() * 1.5);
+        homeGoals = Math.floor(Math.random() * 2) + 1; // 1-2 goals
+        awayGoals = Math.floor(Math.random() * 1.5);  // 0-1 goals
     } else if (strengthDifference > -5) { // Close match / Draw
-        homeGoals = Math.floor(Math.random() * 2.5);
-        awayGoals = Math.floor(Math.random() * 2.5);
-         if (strengthDifference > 0 && Math.random() < 0.2) homeGoals++;
-         if (strengthDifference < 0 && Math.random() < 0.2) awayGoals++;
+        homeGoals = Math.floor(Math.random() * 2.5); // 0-2 goals
+        awayGoals = Math.floor(Math.random() * 2.5); // 0-2 goals
+         if (strengthDifference > 2 && Math.random() < 0.25) homeGoals++; // Slight edge matters
+         if (strengthDifference < -2 && Math.random() < 0.25) awayGoals++;
     } else if (strengthDifference > -15) { // Clear loss
-        homeGoals = Math.floor(Math.random() * 1.5);
-        awayGoals = Math.floor(Math.random() * 2) + 1;
+        homeGoals = Math.floor(Math.random() * 1.5); // 0-1 goals
+        awayGoals = Math.floor(Math.random() * 2) + 1; // 1-2 goals
     } else { // Big loss
-        homeGoals = Math.floor(Math.random() * 2);
-        awayGoals = Math.floor(Math.random() * 3) + 2;
+        homeGoals = Math.floor(Math.random() * 2);   // 0-1 goals
+        awayGoals = Math.floor(Math.random() * 3) + 2; // 2-4 goals
     }
     
     return { homeGoals: Math.max(0, homeGoals), awayGoals: Math.max(0, awayGoals) };
 }
+
 
 /**
  * Generates fixtures for a round-robin tournament (single leg).
@@ -95,7 +90,7 @@ function createInitialTable(teams: AiTeam[], playerTeamName: string): TableEntry
 /**
  * Initializes the game state for a new game or a new season.
  */
-export function generateInitialGameState(leagueId: string = 'lpf', playerStrength: number = INITIAL_PLAYER_STRENGTH): GameState {
+export function generateInitialGameState(leagueId: string = 'lpf', playerStrength: number = INITIAL_PLAYER_STRENGTH, playerMorale: number = 50): GameState {
     const currentLeague = FOOTBALL_LEAGUES.find(l => l.id === leagueId)!;
     
     return {
@@ -105,6 +100,7 @@ export function generateInitialGameState(leagueId: string = 'lpf', playerStrengt
             currentLeagueId: leagueId,
             trainingPoints: 0,
             perfectWeekBonus: false,
+            morale: playerMorale,
             seasonHistory: {},
         },
         leagues: FOOTBALL_LEAGUES,
@@ -124,6 +120,19 @@ export function simulateMatchday(gameState: GameState, trainingPoints: number, i
     const { currentMatchday, fixtures, player, leagues } = gameState;
     let { table } = gameState;
 
+    // 1. Update Morale based on training
+    let newMorale = player.morale;
+    if (trainingPoints > 0) {
+        newMorale += 5; // Increase morale for completing habits
+    } else {
+        newMorale -= 3; // Decrease morale for not training
+    }
+    newMorale = Math.max(0, Math.min(100, newMorale)); // Cap morale between 0 and 100
+
+    // 2. Calculate player's effective strength for this matchday
+    const moraleBonus = (newMorale - 50) / 5; // From -10 to +10 bonus
+    const playerEffectiveStrength = player.strength + moraleBonus + trainingPoints;
+
     const matchdayFixtures = fixtures.filter(f => f.matchday === currentMatchday);
     const currentLeague = leagues.find(l => l.id === player.currentLeagueId)!;
 
@@ -136,17 +145,20 @@ export function simulateMatchday(gameState: GameState, trainingPoints: number, i
         const homeTeamData = currentLeague.teams.find(t => t.id === fixture.homeTeamId);
         const awayTeamData = currentLeague.teams.find(t => t.id === fixture.awayTeamId);
 
-        const homeStrength = homeIsPlayer ? player.strength : (homeTeamData?.strength || 70);
-        const awayStrength = awayIsPlayer ? player.strength : (awayTeamData?.strength || 70);
-        
-        const isPlayerMatch = homeIsPlayer || awayIsPlayer;
+        // 3. Calculate final strength for home and away teams
+        let homeStrength = homeIsPlayer ? playerEffectiveStrength : (homeTeamData?.strength || 70) + (Math.random() * 5);
+        let awayStrength = awayIsPlayer ? playerEffectiveStrength : (awayTeamData?.strength || 70) + (Math.random() * 5);
 
-        const result = simulateMatch(
-            homeStrength,
-            awayStrength,
-            isPlayerMatch ? (homeIsPlayer ? trainingPoints : 0) : Math.floor(Math.random() * 5), 
-            isPlayerMatch ? (homeIsPlayer ? isHomeBonus : false) : Math.random() < 0.5
-        );
+        // Apply home bonus
+        const homeStadiumBonusMultiplier = 1.20; // 20% bonus
+        if (homeIsPlayer && isHomeBonus) {
+            homeStrength *= homeStadiumBonusMultiplier;
+        } else if (!homeIsPlayer && Math.random() < 0.3) { // AI teams also get home bonus sometimes
+            homeStrength *= 1.10;
+        }
+        
+        // 4. Simulate match with final calculated strengths
+        const result = simulateMatch(homeStrength, awayStrength);
         
         fixture.result = { homeGoals: result.homeGoals, awayGoals: result.awayGoals };
 
@@ -180,7 +192,9 @@ export function simulateMatchday(gameState: GameState, trainingPoints: number, i
 
     const sortedTable = [...table].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
 
-    return { ...gameState, table: sortedTable, fixtures, currentMatchday: currentMatchday + 1 };
+    const updatedPlayer = { ...player, morale: newMorale };
+
+    return { ...gameState, player: updatedPlayer, table: sortedTable, fixtures, currentMatchday: currentMatchday + 1 };
 }
 
 /**
@@ -204,17 +218,21 @@ export function startNewSeason(currentState: GameState): GameState {
     }
 
     let nextLeague: League;
+    let strengthBonus = 0;
 
     if (finalPosition <= 3) { // Promotion
         nextLeague = leagues.find(l => l.level === currentLeague.level + 1) || currentLeague;
+        strengthBonus = 5; // Bonus for promotion
     } else if (finalPosition >= table.length - 2 && currentLeague.level > 1) { // Relegation
         nextLeague = leagues.find(l => l.level === currentLeague.level - 1) || currentLeague;
+        strengthBonus = 1; // Small pity bonus
     } else { // Stay in the same league
         nextLeague = currentLeague;
+        strengthBonus = 2; // Bonus for holding your ground
     }
 
-    const newPlayerStrength = player.strength + (7 - currentLeague.level);
-    const newGameState = generateInitialGameState(nextLeague.id, newPlayerStrength);
+    const newPlayerStrength = player.strength + strengthBonus;
+    const newGameState = generateInitialGameState(nextLeague.id, newPlayerStrength, player.morale);
 
     newGameState.player.seasonHistory = newHistory;
     newGameState.currentSeason = currentSeason + 1;
