@@ -56,5 +56,5 @@ export interface GameState {
   currentMatchday: number;
   fixtures: Fixture[];
   table: TableEntry[];
-  gameWon: boolean; // Flag for after winning the Champions Cup
+  gameWon: boolean; // Flag for after winning the Premier League
 }

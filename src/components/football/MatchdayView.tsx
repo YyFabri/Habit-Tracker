@@ -7,22 +7,24 @@ import { Button } from '@/components/ui/button';
 interface MatchdayViewProps {
   gameState: GameState;
   onSimulate: () => void;
+  onNextSeason: () => void;
+  isSeasonOver: boolean;
 }
 
-export function MatchdayView({ gameState, onSimulate }: MatchdayViewProps) {
-  const { currentMatchday, fixtures, player, table } = gameState;
-  const totalMatchdays = (table.length - 1) * 2;
-  const isSeasonOver = currentMatchday > totalMatchdays;
+export function MatchdayView({ gameState, onSimulate, onNextSeason, isSeasonOver }: MatchdayViewProps) {
+  const { currentMatchday, fixtures, player } = gameState;
 
   if (isSeasonOver) {
     return (
-      <Card className="text-center">
+      <Card className="text-center bg-primary/10">
         <CardHeader>
           <CardTitle>¡Temporada Terminada!</CardTitle>
+          <CardDescription>Revisa la tabla final para ver tu posición. ¡Prepárate para lo que viene!</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-lg">Has terminado la temporada. ¡Revisa la tabla final!</p>
-          <Button className="mt-4">Comenzar Nueva Temporada</Button>
+          <Button onClick={onNextSeason} className="w-full" size="lg">
+            Comenzar Siguiente Temporada
+          </Button>
         </CardContent>
       </Card>
     );
@@ -36,29 +38,27 @@ export function MatchdayView({ gameState, onSimulate }: MatchdayViewProps) {
      return (
          <Card>
             <CardHeader>
-                <CardTitle>Fecha {currentMatchday}</CardTitle>
+                <CardTitle>Fecha {currentMatchday} - Descanso</CardTitle>
+                <CardDescription>Tu equipo no juega esta jornada. Aprovecha para planificar la estrategia.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p>Descansas esta fecha.</p>
-                 <Button onClick={onSimulate} className="mt-4 w-full">Simular Día</Button>
+                 <Button onClick={onSimulate} className="mt-4 w-full">Simular Resto de la Jornada</Button>
             </CardContent>
         </Card>
      )
   }
 
-  const opponentName = playerFixture.homeTeamId === player.teamName ? playerFixture.awayTeamId : playerFixture.homeTeamId;
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Próximo Partido: Fecha {currentMatchday}</CardTitle>
-        <CardDescription>Completa tus hábitos para fortalecer a tu equipo.</CardDescription>
+        <CardDescription>Completa tus hábitos para fortalecer a tu equipo antes del gran día.</CardDescription>
       </CardHeader>
       <CardContent className="text-center">
-        <div className="flex items-center justify-center gap-4 text-2xl font-bold">
-          <div>{playerFixture.homeTeamId}</div>
+        <div className="flex items-center justify-center gap-4 text-2xl font-bold my-4">
+          <div className="flex-1 text-right">{playerFixture.homeTeamId}</div>
           <div className="text-muted-foreground">vs</div>
-          <div>{playerFixture.awayTeamId}</div>
+          <div className="flex-1 text-left">{playerFixture.awayTeamId}</div>
         </div>
         <Button onClick={onSimulate} className="mt-6 w-full" size="lg">
           Simular Día y Jugar Partido
