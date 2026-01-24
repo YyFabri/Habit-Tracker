@@ -1,5 +1,5 @@
 import type { GameState, PlayerState, AiTeam, TableEntry, Fixture, League } from './football-types';
-import { FOOTBALL_LEAGUES, PLAYER_TEAM_NAME, INITIAL_PLAYER_STRENGTH } from './football-data';
+import { FOOTBALL_LEAGUES } from './football-data';
 
 /**
  * Simulates a football match result based on team strengths and other factors.
@@ -90,12 +90,12 @@ function createInitialTable(teams: AiTeam[], playerTeamName: string): TableEntry
 /**
  * Initializes the game state for a new game or a new season.
  */
-export function generateInitialGameState(leagueId: string = 'lpf', playerStrength: number = INITIAL_PLAYER_STRENGTH, playerMorale: number = 50): GameState {
+export function generateInitialGameState(playerName: string, leagueId: string = 'lpf', playerStrength: number = 40, playerMorale: number = 50): GameState {
     const currentLeague = FOOTBALL_LEAGUES.find(l => l.id === leagueId)!;
     
     return {
         player: {
-            teamName: PLAYER_TEAM_NAME,
+            teamName: playerName,
             strength: playerStrength,
             currentLeagueId: leagueId,
             trainingPoints: 0,
@@ -106,8 +106,8 @@ export function generateInitialGameState(leagueId: string = 'lpf', playerStrengt
         leagues: FOOTBALL_LEAGUES,
         currentSeason: 1,
         currentMatchday: 1,
-        fixtures: generateFixtures(currentLeague.teams, PLAYER_TEAM_NAME),
-        table: createInitialTable(currentLeague.teams, PLAYER_TEAM_NAME),
+        fixtures: generateFixtures(currentLeague.teams, playerName),
+        table: createInitialTable(currentLeague.teams, playerName),
         gameWon: false,
     };
 }
@@ -232,7 +232,7 @@ export function startNewSeason(currentState: GameState): GameState {
     }
 
     const newPlayerStrength = player.strength + strengthBonus;
-    const newGameState = generateInitialGameState(nextLeague.id, newPlayerStrength, player.morale);
+    const newGameState = generateInitialGameState(player.teamName, nextLeague.id, newPlayerStrength, player.morale);
 
     newGameState.player.seasonHistory = newHistory;
     newGameState.currentSeason = currentSeason + 1;

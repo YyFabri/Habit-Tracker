@@ -1,8 +1,5 @@
 import type { League } from './football-types';
 
-export const PLAYER_TEAM_NAME = "Mi Equipo";
-export const INITIAL_PLAYER_STRENGTH = 40;
-
 export const FOOTBALL_LEAGUES: League[] = [
   {
     id: 'lpf',

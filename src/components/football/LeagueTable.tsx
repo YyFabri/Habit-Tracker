@@ -34,9 +34,9 @@ export function LeagueTable({ table, playerId }: LeagueTableProps) {
         </TableHeader>
         <TableBody>
           {table.map((entry, index) => (
-            <TableRow key={entry.teamId} className={cn(entry.teamId === playerId && 'bg-primary/10')}>
+            <TableRow key={entry.teamId} className={cn(entry.teamId === playerId && 'bg-primary/10 font-bold')}>
               <TableCell className="text-center font-medium">{index + 1}</TableCell>
-              <TableCell className="font-medium">{entry.teamName}</TableCell>
+              <TableCell>{entry.teamName}</TableCell>
               <TableCell className="text-center">{entry.played}</TableCell>
               <TableCell className="text-center">{entry.wins}</TableCell>
               <TableCell className="text-center">{entry.draws}</TableCell>

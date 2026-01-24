@@ -12,7 +12,15 @@ interface MatchdayViewProps {
 }
 
 export function MatchdayView({ gameState, onSimulate, onNextSeason, isSeasonOver }: MatchdayViewProps) {
-  const { currentMatchday, fixtures, player } = gameState;
+  const { currentMatchday, fixtures, player, leagues } = gameState;
+  const currentLeague = leagues.find(l => l.id === player.currentLeagueId)!;
+
+  const getTeamName = (teamId: string) => {
+    if (teamId === player.teamName) {
+        return player.teamName;
+    }
+    return currentLeague.teams.find(t => t.id === teamId)?.name || teamId;
+  };
 
   if (isSeasonOver) {
     return (
@@ -56,9 +64,9 @@ export function MatchdayView({ gameState, onSimulate, onNextSeason, isSeasonOver
       </CardHeader>
       <CardContent className="text-center">
         <div className="flex items-center justify-center gap-4 text-2xl font-bold my-4">
-          <div className="flex-1 text-right">{playerFixture.homeTeamId}</div>
+          <div className="flex-1 text-right">{getTeamName(playerFixture.homeTeamId)}</div>
           <div className="text-muted-foreground">vs</div>
-          <div className="flex-1 text-left">{playerFixture.awayTeamId}</div>
+          <div className="flex-1 text-left">{getTeamName(playerFixture.awayTeamId)}</div>
         </div>
         <Button onClick={onSimulate} className="mt-6 w-full" size="lg">
           Simular Día y Jugar Partido

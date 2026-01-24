@@ -6,7 +6,9 @@ import { generateInitialGameState, simulateMatchday, startNewSeason } from '@/li
 import { FootballHeader } from '@/components/football/FootballHeader';
 import { LeagueTable } from '@/components/football/LeagueTable';
 import { MatchdayView } from '@/components/football/MatchdayView';
+import { MatchHistory } from '@/components/football/MatchHistory';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -66,21 +68,19 @@ function WinScreen({ gameState, onReset }: { gameState: GameState, onReset: () =
 export default function FootballPage() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [newCareerName, setNewCareerName] = useState('');
 
   useEffect(() => {
     setIsClient(true);
     try {
       const savedState = localStorage.getItem('footballGameState');
       if (savedState) {
-        // Here we need to be careful. If the state is from a "won" game,
-        // buttons might not work. We'll handle reset logic carefully.
         setGameState(JSON.parse(savedState));
-      } else {
-        setGameState(generateInitialGameState());
       }
     } catch (error) {
       console.error("Failed to load football game state:", error);
-      setGameState(generateInitialGameState());
+      localStorage.removeItem('footballGameState');
+      setGameState(null);
     }
   }, []);
 
@@ -89,6 +89,13 @@ export default function FootballPage() {
       localStorage.setItem('footballGameState', JSON.stringify(gameState));
     }
   }, [gameState, isClient]);
+  
+  const handleStartCareer = () => {
+    if (newCareerName.trim()) {
+        setGameState(generateInitialGameState(newCareerName.trim()));
+        setNewCareerName('');
+    }
+  }
 
   const handleSimulateDay = () => {
     if (!gameState) return;
@@ -105,13 +112,13 @@ export default function FootballPage() {
   const handleResetGame = () => {
      if (window.confirm("¿Estás seguro de que quieres reiniciar tu carrera? Perderás todo tu progreso.")) {
         localStorage.removeItem('footballGameState');
-        setGameState(generateInitialGameState());
+        setGameState(null);
      }
   }
 
   const handleWinScreenReset = () => {
     localStorage.removeItem('footballGameState');
-    setGameState(generateInitialGameState());
+    setGameState(null);
   }
 
   const handleNextSeason = () => {
@@ -119,7 +126,7 @@ export default function FootballPage() {
     setGameState(startNewSeason(gameState));
   }
 
-  if (!isClient || !gameState) {
+  if (!isClient) {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <FootballHeader />
@@ -133,6 +140,33 @@ export default function FootballPage() {
             </main>
         </div>
     );
+  }
+
+  if (!gameState) {
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+            <FootballHeader />
+            <main className="flex-grow flex flex-col items-center justify-center text-center p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Comienza tu Carrera de DT</CardTitle>
+                        <CardDescription>Elige un nombre para tu club y llévalo a la gloria.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Input 
+                            placeholder="Ej: Los Invencibles FC" 
+                            value={newCareerName}
+                            onChange={(e) => setNewCareerName(e.target.value)}
+                             onKeyDown={(e) => e.key === 'Enter' && handleStartCareer()}
+                        />
+                        <Button onClick={handleStartCareer} disabled={!newCareerName.trim()} className="w-full">
+                            Empezar Carrera
+                        </Button>
+                    </CardContent>
+                </Card>
+            </main>
+        </div>
+    )
   }
 
   if (gameState.gameWon) {
@@ -183,6 +217,9 @@ export default function FootballPage() {
                 <Button onClick={handleResetGame} variant="destructive" className="w-full">
                     Reiniciar Carrera
                 </Button>
+            </div>
+             <div className="md:col-span-3">
+                <MatchHistory gameState={gameState} />
             </div>
         </div>
       </main>
