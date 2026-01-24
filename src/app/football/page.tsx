@@ -101,7 +101,7 @@ export default function FootballPage() {
   const handleResetGame = () => {
      if (window.confirm("¿Estás seguro de que quieres reiniciar tu carrera? Perderás todo tu progreso.")) {
         localStorage.removeItem('footballGameState');
-        setGameState(generateInitialGameState());
+        window.location.reload();
      }
   }
 
