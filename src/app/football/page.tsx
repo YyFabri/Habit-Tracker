@@ -100,16 +100,13 @@ export default function FootballPage() {
   
   const handleResetGame = () => {
      if (window.confirm("¿Estás seguro de que quieres reiniciar tu carrera? Perderás todo tu progreso.")) {
-        localStorage.removeItem('footballGameState');
-        window.location.reload();
+        setGameState(generateInitialGameState());
      }
   }
 
   const handleNextSeason = () => {
     if (!gameState) return;
-    if (window.confirm("¿Estás listo para empezar la siguiente temporada?")) {
-        setGameState(startNewSeason(gameState));
-    }
+    setGameState(startNewSeason(gameState));
   }
 
   if (!isClient || !gameState) {
@@ -134,7 +131,8 @@ export default function FootballPage() {
   
   const { table, currentMatchday, fixtures, player, leagues, currentSeason } = gameState;
   const currentLeague = leagues.find(l => l.id === player.currentLeagueId);
-  const totalMatchdays = (currentLeague?.teams.length || 19) + 1 - (currentLeague?.teams.length % 2);
+  const numTeams = (currentLeague?.teams.length || 0) + 1;
+  const totalMatchdays = numTeams % 2 === 0 ? numTeams - 1 : numTeams;
   const isSeasonOver = currentMatchday > totalMatchdays;
 
   return (
