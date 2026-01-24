@@ -2,14 +2,15 @@
 
 import { format, isToday, isTomorrow, isYesterday, isFuture } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu, Plus } from 'lucide-react';
 import { getFunctionalDate } from '@/lib/date-utils';
 import { ModeToggle } from '../ModeToggle';
 
 interface HeaderProps {
-  selectedDate: Date;
-  functionalToday: Date;
+  selectedDate: Date | null;
+  functionalToday: Date | null;
   onAddHabit: () => void;
   onOpenGroupManager: () => void;
 }
@@ -21,6 +22,7 @@ export function Header({
   onOpenGroupManager,
 }: HeaderProps) {
   const displayDate = () => {
+    if (!selectedDate || !functionalToday) return '';
     const functionalSelectedDate = getFunctionalDate(selectedDate);
     if (isToday(functionalSelectedDate)) return 'Hoy';
     if (isYesterday(functionalSelectedDate)) return 'Ayer';
@@ -28,7 +30,7 @@ export function Header({
     return format(selectedDate, 'd MMMM', { locale: es });
   };
 
-  const isFutureDate = isFuture(selectedDate) && !isToday(getFunctionalDate(selectedDate));
+  const isFutureDate = selectedDate ? isFuture(selectedDate) && !isToday(getFunctionalDate(selectedDate)) : false;
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
@@ -37,6 +39,11 @@ export function Header({
           <Menu className="h-6 w-6" />
         </Button>
         <ModeToggle />
+         <Link href="/football" passHref>
+          <Button variant="ghost" size="icon" aria-label="Juego de Fútbol">
+            <span className="text-2xl">⚽️</span>
+          </Button>
+        </Link>
       </div>
       <h1 className="text-xl font-bold">{displayDate()}</h1>
       <Button
